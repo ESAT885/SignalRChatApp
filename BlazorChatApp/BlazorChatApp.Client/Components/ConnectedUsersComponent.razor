@@ -1,0 +1,26 @@
+﻿@if (ConnectedUsers is not null && ConnectedUsers.Count > 0)
+{
+	@foreach (var user in ConnectedUsers)
+	{
+		@if (user.UserName != LogonUser)
+		{
+			<tr style=" cursor:pointer;height:30px" @key="user.ConnectionId">
+				<td>@user.UserName</td>
+				<td></td>
+			</tr>
+		}
+
+	}
+}
+
+
+
+
+@code {
+	[Parameter]
+	public string? LogonUser { get; set; }
+	[Parameter]
+	public List<ConnectedUser>? ConnectedUsers { get; set; }
+
+
+}

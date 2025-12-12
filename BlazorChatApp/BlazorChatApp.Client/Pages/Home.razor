@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using ChatContracts
 
 <PageTitle>Chat App</PageTitle>
 
@@ -10,17 +11,31 @@
 }
 else
 {
-	@if (systemMessages is not null && systemMessages.Count > 0)
-	{
-		<ul>
-			@foreach (var message in systemMessages)
+
+	<div class="row">
+		<div class="col-4">
+			<h3>Connected Users</h3>
+			<table style="width:100%">
+				
+				<ConnectedUsersComponent LogonUser="@userName" ConnectedUsers="_conntectedUsers" />
+			</table>
+			
+		</div>
+		<div class="col-8">
+			@if (systemMessages is not null && systemMessages.Count > 0)
 			{
-				<li>
-					@message
-				</li>
+				<ul>
+					@foreach (var message in systemMessages)
+					{
+						<li>
+							@message
+						</li>
+					}
+				</ul>
 			}
-		</ul>
-	}
+		</div>
+	</div>
+	
 }
 
 
@@ -31,7 +46,7 @@ else
 	private string userName = string.Empty;
 	private string userId = string.Empty;
 	private List<string> systemMessages = new List<string>();
-
+	private static List<ConnectedUser> _conntectedUsers = new List<ConnectedUser>();
 
 	private void ReceiveSystemMessage(string message)
 	{
@@ -49,10 +64,18 @@ else
 	private async Task ConnectToServer()
 	{
 		var hubConntection = new HubConnectionBuilder()
-			.WithUrl($"http://localhost:5182/chathub?userid={userId}&username={userName}")
+			.WithUrl($"http://localhost:5182/chathub?userId={userId}&userName={userName}")
 			.Build();
 		hubConntection.On<string>("ReceiveSystemMessage", ReceiveSystemMessage);
+		hubConntection.On<List<ConnectedUser>>("UpdateUserList", UpdateUserList);
 		await hubConntection.StartAsync();
 
+	}
+	private void UpdateUserList(List<ConnectedUser> users)
+	{
+		if (users is null)
+			return;
+		_conntectedUsers = users;
+		StateHasChanged();
 	}
 }
