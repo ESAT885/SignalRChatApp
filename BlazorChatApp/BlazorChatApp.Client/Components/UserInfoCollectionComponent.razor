@@ -1,0 +1,41 @@
+﻿<h3>Enter Your Info</h3>
+
+@if(userInfo is not null)
+{
+	<EditForm Model="userInfo" OnValidSubmit="SaveUserInfo">
+		<DataAnnotationsValidator/>
+			<ValidationSummary/>
+			<div class="row mb-3">
+				<div class="col-3">
+					<label for="UserName" class="col-form-label">UserName</label>
+				</div>
+				<div class="col-9">
+					<InputText id="useName" class="formcontrol" @bind-Value="userInfo.UserName"></InputText>
+				    <ValidationMessage For="@(()=>userInfo.UserName)" />
+				</div>
+			<div class="row mb-3">
+				<div class="col-3">
+					<button type="submit" class="btn bnt-primary">Submit</button>
+				</div>
+			
+			</div>
+			</div>
+	</EditForm>
+}
+@code {
+	private UserInfo userInfo = new UserInfo();
+
+	[Parameter]
+	public EventCallback<string> OnUserInfoSaved { get; set; }
+
+	private async Task SaveUserInfo()
+	{
+		await OnUserInfoSaved.InvokeAsync(userInfo.UserName);
+	}
+	class UserInfo
+	{
+		[Required]
+		public string UserName { get; set; } = string.Empty;
+	}
+
+}

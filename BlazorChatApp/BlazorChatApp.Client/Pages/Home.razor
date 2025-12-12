@@ -1,0 +1,58 @@
+﻿@page "/"
+
+<PageTitle>Chat App</PageTitle>
+
+@if (string.IsNullOrEmpty(userName))
+{
+	<UserInfoCollectionComponent OnUserInfoSaved="OnUserInfoProvided" />
+
+
+}
+else
+{
+	@if (systemMessages is not null && systemMessages.Count > 0)
+	{
+		<ul>
+			@foreach (var message in systemMessages)
+			{
+				<li>
+					@message
+				</li>
+			}
+		</ul>
+	}
+}
+
+
+
+
+
+@code {
+	private string userName = string.Empty;
+	private string userId = string.Empty;
+	private List<string> systemMessages = new List<string>();
+
+
+	private void ReceiveSystemMessage(string message)
+	{
+		if (string.IsNullOrWhiteSpace(message))
+			return;
+		systemMessages.Add(message);
+		StateHasChanged();
+	}
+	private async Task OnUserInfoProvided(string userName)
+	{
+		this.userName = userName;
+		this.userId = Guid.NewGuid().ToString();
+		await ConnectToServer();
+	}
+	private async Task ConnectToServer()
+	{
+		var hubConntection = new HubConnectionBuilder()
+			.WithUrl($"http://localhost:5182/chathub?userid={userId}&username={userName}")
+			.Build();
+		hubConntection.On<string>("ReceiveSystemMessage", ReceiveSystemMessage);
+		await hubConntection.StartAsync();
+
+	}
+}
