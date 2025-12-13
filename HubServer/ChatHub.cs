@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace HubServer
 {
-    public class ChatHub:Hub
+    public class ChatHub : Hub<IChatClient>
     {
         private static List<ConnectedUser> _conntectedUsers = new List<ConnectedUser>();
         private static readonly object _lockUsers = new object();
@@ -11,9 +11,9 @@ namespace HubServer
         {
             var userId = Context.GetHttpContext()?.Request.Query["userId"];
             var userName = Context.GetHttpContext()?.Request.Query["userName"];
-           if(string.IsNullOrEmpty(userId)||string.IsNullOrEmpty(userName))
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userName))
             {
-                await Clients.Caller.SendAsync("ReceiveSystemMessage", "Connection failed: Missing userId or userName.");
+                await Clients.Caller.ReceiveSystemMessage("Bağlatı Hatası.");
                 Context.Abort();
                 return;
             }
@@ -26,18 +26,18 @@ namespace HubServer
                     ConnectionId = Context.ConnectionId
                 });
             }
-           
-            await Clients.Caller.SendAsync("ReceiveSystemMessage", "Welcome to the chat room!");
-            await Clients.All.SendAsync("UpdateUserList", _conntectedUsers);
-           
+
+            await Clients.Caller.ReceiveSystemMessage("Sohbet odasına hoşgeldiniz!");
+            await Clients.All.UpdateUserList(_conntectedUsers);
+
         }
         override public async Task OnDisconnectedAsync(Exception? exception)
         {
-           
+
             ConnectedUser? user;
             lock (_lockUsers)
             {
-                 user = _conntectedUsers.FirstOrDefault(u => u.ConnectionId == Context.ConnectionId);
+                user = _conntectedUsers.FirstOrDefault(u => u.ConnectionId == Context.ConnectionId);
                 if (user != null)
                 {
                     _conntectedUsers.Remove(user);
@@ -45,10 +45,14 @@ namespace HubServer
             }
             if (user != null)
             {
-                await Clients.Caller.SendAsync("ReceiveSystemMessage", $"{user?.UserName} has left the chat");
-                await Clients.All.SendAsync("UpdateUserList", _conntectedUsers);
+                await Clients.Others.ReceiveSystemMessage($"{user?.UserName} kullanıcı ayrıldı");
+                await Clients.All.UpdateUserList(_conntectedUsers);
             }
             await base.OnDisconnectedAsync(exception);
         }
-    }
+        public async Task ForwardMessage(string fromUserId, string toConnectionId, string message)
+        {
+            await Clients.Client(toConnectionId).ReceiveMessage(fromUserId,Context.ConnectionId,message);
+        }
+    }  
 }

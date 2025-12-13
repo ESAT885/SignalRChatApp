@@ -1,4 +1,6 @@
-﻿<h3>Enter Your Info</h3>
+﻿<h3>
+    Bilgilerinizi Girin
+</h3>
 
 @if (userInfo is not null)
 {
@@ -6,20 +8,29 @@
         <DataAnnotationsValidator />
         <ValidationSummary />
 
-        <div class="row mb-2">
-            <div class="col-3">
-                <label for="UserName" class="col-form-label">User Name</label>
-            </div>
-            <div class="col-6">
-                <InputText id="UserName" class="form-control"
+        <div class="mb-4">
+            <label for="UserName" class="form-label fw-semibold text-secondary">
+                Kullanıcı Adınız
+            </label>
+
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-person text-muted"></i>
+                </span>
+
+                <InputText id="UserName"
+                           class="form-control border-start-0 py-2"
+                           placeholder="Kullanıcı adınızı girin"
                            @bind-Value="userInfo.UserName" />
-                <ValidationMessage For="@(() => userInfo.UserName)" />
             </div>
+
+            <ValidationMessage For="@(() => userInfo.UserName)"
+                               class="text-danger small mt-1 d-block" />
         </div>
 
         <div class="row mb-3">
-            <div class="col-6">
-                <button type="submit" class="btn btn-primary">Submit</button>
+            <div class="col-12">
+                <button type="submit"class="btn btn-primary w-100 py-2 fw-semibold shadow-sm rounded-3">Giriş</button>
             </div>
         </div>
     </EditForm>

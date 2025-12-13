@@ -1,39 +1,78 @@
 ﻿@page "/"
 @using ChatContracts
 
-<PageTitle>Chat App</PageTitle>
+<PageTitle>Mesajlaşma Uygulması</PageTitle>
 
 @if (string.IsNullOrEmpty(userName))
 {
-	<UserInfoCollectionComponent OnUserInfoSaved="OnUserInfoProvided" />
+	<div class="login-page d-flex align-items-center justify-content-center">
+		<div class="login-card shadow-lg">
+			<div class="text-center mb-4">
+				<div class="avatar mb-3">
+					<i class="bi bi-chat-dots-fill"></i>
+				</div>
+				<h4 class="fw-bold">Sohbete Hoş Geldin</h4>
+				<p class="text-muted small">
+					Devam etmek için kullanıcı adını gir
+				</p>
+			</div>
 
+			<UserInfoCollectionComponent OnUserInfoSaved="OnUserInfoProvided" />
 
+			<div class="text-center mt-4">
+				<small class="text-muted">
+					© 2025 Chat App
+				</small>
+			</div>
+		</div>
+	</div>
 }
 else
 {
 
-	<div class="row">
-		<div class="col-4">
-			<h3>Connected Users</h3>
-			<table style="width:100%">
+	<div class="row chat-layout g-3">
+
+		<!-- LEFT SIDEBAR -->
+		<div class="col-12 col-md-4 col-lg-3">
+			<div class="card sidebar-card">
+
+				<div class="card-header sidebar-header">
+					<h6 class="mb-0 fw-semibold">Bağlı Kullanıcılar</h6>
+				</div>
+
+				<div class="card-body sidebar-body">
+
 				
-				<ConnectedUsersComponent LogonUser="@userName" ConnectedUsers="_conntectedUsers" />
-			</table>
-			
-		</div>
-		<div class="col-8">
-			@if (systemMessages is not null && systemMessages.Count > 0)
-			{
-				<ul>
-					@foreach (var message in systemMessages)
+
+					<div class="connected-users-wrapper">
+						<ConnectedUsersComponent @ref="connectedUsersComponent"
+												 LogonUser="@userId"
+												 ConnectedUsers="_conntectedUsers"
+												 OnUserSelected="OnUserSelected" />
+					</div>
+					@if (systemMessages is not null && systemMessages.Count > 0)
 					{
-						<li>
-							@message
-						</li>
+						<ul class="list-unstyled system-messages">
+							@foreach (var message in systemMessages)
+							{
+								<li class="system-message">@message</li>
+							}
+						</ul>
 					}
-				</ul>
-			}
+
+				</div>
+			</div>
 		</div>
+
+		<!-- CHAT AREA -->
+		<div class="col-12 col-md-8 col-lg-9">
+			<ChatComponent FromUserId="@this.userId"
+						   ToUser="@targetUser"
+						   ConnectedUsers="_conntectedUsers"
+						   hubConnection="@hubConntection"
+						   OnMessageSent="OnMessageSent" />
+		</div>
+
 	</div>
 	
 }
@@ -47,7 +86,9 @@ else
 	private string userId = string.Empty;
 	private List<string> systemMessages = new List<string>();
 	private static List<ConnectedUser> _conntectedUsers = new List<ConnectedUser>();
-
+	private HubConnection? hubConntection;
+	private ConnectedUser? targetUser;
+	private ConnectedUsersComponent? connectedUsersComponent;
 	private void ReceiveSystemMessage(string message)
 	{
 		if (string.IsNullOrWhiteSpace(message))
@@ -63,13 +104,18 @@ else
 	}
 	private async Task ConnectToServer()
 	{
-		var hubConntection = new HubConnectionBuilder()
-			.WithUrl($"http://localhost:5182/chathub?userId={userId}&userName={userName}")
-			.Build();
+		hubConntection = new HubConnectionBuilder()
+					.WithUrl($"http://localhost:5182/chathub?userId={userId}&userName={userName}")
+					.Build();
 		hubConntection.On<string>("ReceiveSystemMessage", ReceiveSystemMessage);
 		hubConntection.On<List<ConnectedUser>>("UpdateUserList", UpdateUserList);
+		hubConntection.On<string, string, string>("ReceiveMessage", ReceiveMessage);
 		await hubConntection.StartAsync();
 
+	}
+	private void OnMessageSent(string toUserId)
+	{
+		connectedUsersComponent?.CleaerUnreadMessageCount(toUserId);
 	}
 	private void UpdateUserList(List<ConnectedUser> users)
 	{
@@ -78,4 +124,32 @@ else
 		_conntectedUsers = users;
 		StateHasChanged();
 	}
+	private void ReceiveMessage(string fromUserId, string fromConnectionId,string message)
+	{
+		if(string.IsNullOrWhiteSpace(fromConnectionId))
+		{
+			return;
+		}
+		var fromUser = _conntectedUsers.FirstOrDefault(u => u.ConnectionId == fromConnectionId);
+		if (fromUser is  null)
+		{
+			return;
+		}
+		fromUser.Messages.Add(new ChatMessage
+			{
+				FromUserId = fromUserId,
+				Message = message,
+				ToUserId = this.userId,
+
+			});
+		StateHasChanged();
+	}
+	private void OnUserSelected(ConnectedUser connectedUser)
+	{
+
+		targetUser = connectedUser;
+		StateHasChanged();
+	}
+
+
 }

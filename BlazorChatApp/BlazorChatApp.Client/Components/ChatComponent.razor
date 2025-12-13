@@ -1,0 +1,95 @@
+﻿@if (ToUser is not null && ConnectedUsers is not null && ConnectedUsers.Count > 0)
+{
+	<div class="card chat-card">
+		<!-- Header -->
+		<div class="card-header chat-header">
+			<span class="chat-title">@ToUser.UserName</span>
+		</div>
+
+		<!-- Messages -->
+
+
+		<div class="chat-body overflow-auto p-3">
+			@foreach (var message in ToUser.Messages)
+			{
+				var isMe = message.FromUserId == FromUserId;
+				var fromUserName = ConnectedUsers
+				.FirstOrDefault(u => u.UserId == message.FromUserId)?.UserName;
+
+				<div class="d-flex mb-2 @(isMe ? "justify-content-end" : "justify-content-start")">
+					<div class="chat-bubble @(isMe ? "me" : "other")">
+						@if (!isMe)
+						{
+							<div class="chat-user">@fromUserName</div>
+						}
+						<div class="chat-text">@message.Message</div>
+					</div>
+				</div>
+			}
+		</div>
+		<!-- Footer -->
+		<div class="card-footer chat-footer chat-footer-fixed">
+			<div class="input-group">
+				<input type="text"
+					   class="form-control chat-input"
+					   placeholder="Mesaj yaz..."
+					   @bind="newMessage"
+					   @bind:event="oninput"
+					   @onkeydown="HandleKeyPress">
+
+				<button class="btn btn-primary chat-send-btn"
+						@onclick="SendMessage">
+					Gönder
+				</button>
+			</div>
+		</div>
+	</div>
+
+}
+@code {
+
+	[Parameter]
+	public string? FromUserId { get; set; }
+
+	[Parameter]
+	public ConnectedUser? ToUser { get; set; }
+
+	[Parameter]
+	public List<ConnectedUser> ConnectedUsers { get; set; }
+
+	[Parameter]
+	public HubConnection? hubConnection { get; set; }
+
+	[Parameter]
+	public EventCallback<string> OnMessageSent { get; set; }
+
+	private string newMessage = string.Empty;
+	private ElementReference sidebarBodyRef;
+
+	private void SendMessage()
+	{
+		if (hubConnection is not null && ToUser is not null && !string.IsNullOrWhiteSpace(newMessage))
+		{
+			hubConnection.InvokeAsync("ForwardMessage", this.FromUserId, ToUser.ConnectionId, newMessage);
+
+			ToUser.Messages.Add(new ChatMessage
+			{
+				FromUserId = this.FromUserId,
+				ToUserId = ToUser.UserId,
+				Message = newMessage,
+
+			});
+			newMessage = string.Empty;
+			OnMessageSent.InvokeAsync(ToUser.UserId);
+		}
+	}
+	private void HandleKeyPress(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+		{
+			SendMessage();
+		}
+	}
+
+
+}
