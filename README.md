@@ -1,7 +1,12 @@
 # Blazor ve SignalR ile Gerçek Zamanlı Sohbet Uygulaması
 
-![giriş ekranı](BlazorChatApp/BlazorChatApp.Client/images/login.png)
-![mesajlaşma Ekranı](BlazorChatApp/BlazorChatApp.Client/images/chat.png)
+<p align="center">
+  <img src="BlazorChatApp/BlazorChatApp.Client/images/login.png" width="500" />
+</p>
+
+<p align="center">
+  <img src="BlazorChatApp/BlazorChatApp.Client/images/chat.png" width="500" />
+</p>
 
 Bu proje, **.NET 9** kullanılarak geliştirilmiş, **Blazor Web App** ve **ASP.NET Core SignalR** teknolojilerinin birlikte nasıl çalıştığını gösteren örnek bir uygulamadır. Proje, sunucu ve istemci arasındaki gerçek zamanlı haberleşmeyi modern bir mimari ile sunar.
 
@@ -44,3 +49,4 @@ Projeyi çalıştırmak için iki ayrı terminalde sunucu ve istemciyi ayağa ka
     `BlazorChatApp/BlazorChatApp` klasörüne gidip `dotnet run` komutunu çalıştırın. Uygulama `http://localhost:5114` adresinde açılacaktır.
 
 Uygulamayı tarayıcıda açtıktan sonra farklı sekmelerde farklı kullanıcı adlarıyla giriş yaparak sohbeti test edebilirsiniz.
+
