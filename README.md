@@ -1,3 +1,4 @@
 ![giriş ekranı](BlazorChatApp/BlazorChatApp.Client/images/login.png)
-![Oyun Ekranı](images/game.png)
+![mesajlaşma Ekranı](BlazorChatApp/BlazorChatApp.Client/images/chat.png)
+
 
