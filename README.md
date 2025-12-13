@@ -2,10 +2,7 @@
 
 <p align="center">
   <img src="BlazorChatApp/BlazorChatApp.Client/images/login.png" width="500" />
-</p>
-
-<p align="center">
-  <img src="BlazorChatApp/BlazorChatApp.Client/images/chat.png" width="500" />
+  <img src="BlazorChatApp/BlazorChatApp.Client/images/chat.png" width="900" />
 </p>
 
 Bu proje, **.NET 9** kullanılarak geliştirilmiş, **Blazor Web App** ve **ASP.NET Core SignalR** teknolojilerinin birlikte nasıl çalıştığını gösteren örnek bir uygulamadır. Proje, sunucu ve istemci arasındaki gerçek zamanlı haberleşmeyi modern bir mimari ile sunar.
